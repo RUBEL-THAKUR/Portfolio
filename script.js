@@ -215,70 +215,45 @@ function initSkillBars() {
 }
 
 // Project Filters
-function initProjectFilters() {
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    const projectCards = document.querySelectorAll('.project-card');
-    
-    filterButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            // Remove active class from all buttons
-            filterButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            const filter = btn.dataset.filter;
-            
-            projectCards.forEach(card => {
-                if (filter === 'all' || card.dataset.category === filter) {
-                    card.style.display = 'block';
-                    card.style.opacity = '0';
-                    card.style.transform = 'translateY(20px)';
-                    
-                    setTimeout(() => {
-                        card.style.opacity = '1';
-                        card.style.transform = 'translateY(0)';
-                    }, 100);
-                } else {
-                    card.style.opacity = '0';
-                    card.style.transform = 'translateY(20px)';
-                    
-                    setTimeout(() => {
-                        card.style.display = 'none';
-                    }, 300);
-                }
-            });
-        });
-    });
-}
-
-// Contact Form
 function initContactForm() {
     const form = document.getElementById('contactForm');
     const modal = document.getElementById('successModal');
-    
+
+    if (!form) return;
+
     form.addEventListener('submit', async (e) => {
-        e.preventDefault(); // Prevent default HTML submit
+        e.preventDefault();
 
         const submitBtn = form.querySelector('button[type="submit"]');
         submitBtn.classList.add('loading');
 
+        // Convert form inputs to JSON
         const formData = new FormData(form);
+        const data = {
+            name: formData.get('name'),
+            email: formData.get('email'),
+            subject: formData.get('subject'),
+            message: formData.get('message'),
+            timestamp: new Date().toISOString()
+        };
 
         try {
-            const response = await fetch("https://formspree.io/f/xyzprjok", {
+            const response = await fetch("/api/contact", {
                 method: "POST",
-                body: formData,
-                headers: { "Accept": "application/json" }
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
             });
 
             if (response.ok) {
                 modal.classList.add('show'); // Show success modal
                 form.reset();
             } else {
-                alert("There was an error sending your message. Please try again.");
+                const result = await response.json();
+                alert(result.message || "There was an error sending your message.");
             }
 
         } catch (error) {
-            console.error("Formspree error:", error);
+            console.error("Error sending form:", error);
             alert("There was an error sending your message. Please try again.");
         } finally {
             submitBtn.classList.remove('loading');
