@@ -256,47 +256,33 @@ function initContactForm() {
     const modal = document.getElementById('successModal');
     
     form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
+        e.preventDefault(); // Prevent default HTML submit
+
         const submitBtn = form.querySelector('button[type="submit"]');
         submitBtn.classList.add('loading');
-        
-        // Get form data
+
         const formData = new FormData(form);
-        const data = {
-            name: formData.get('name'),
-            email: formData.get('email'),
-            subject: formData.get('subject'),
-            message: formData.get('message'),
-            timestamp: new Date().toISOString()
-        };
-        
+
         try {
-            // Here you would typically send the data to your backend
-            // For demo purposes, we'll simulate an API call
-            await simulateAPICall(data);
-            
-            // Show success modal
-            modal.classList.add('show');
-            form.reset();
-            
+            const response = await fetch("https://formspree.io/f/xyzprjok", {
+                method: "POST",
+                body: formData,
+                headers: { "Accept": "application/json" }
+            });
+
+            if (response.ok) {
+                modal.classList.add('show'); // Show success modal
+                form.reset();
+            } else {
+                alert("There was an error sending your message. Please try again.");
+            }
+
         } catch (error) {
-            console.error('Error submitting form:', error);
-            alert('There was an error sending your message. Please try again.');
+            console.error("Formspree error:", error);
+            alert("There was an error sending your message. Please try again.");
         } finally {
             submitBtn.classList.remove('loading');
         }
-    });
-}
-
-// Simulate API call (replace with real backend integration)
-function simulateAPICall(data) {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            console.log('Form data:', data);
-            // Here you would send data to your backend/database
-            resolve();
-        }, 2000);
     });
 }
 
